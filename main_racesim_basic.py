@@ -18,11 +18,12 @@ date:
 .. description::
 This script calculates the best race strategy (wihtout regarding traffic on the race track) for a given maximum number
 of pit stops on the basis of the fitted parameters. The main influence is the tire degradation model.
+最优停站策略，基于轮胎衰减模型（不考虑加油）
 
 Attention:
 - Refueling (fuel or energy) is not optimized at the moment since this is not relevant anymore for many racing series.
-- The QP optimization only works for a linear tire model and without FCY phases. This is due to the fact that it
-  basically optimizes the stint lengths to minimize solely the tire degradation time losses.
+- The QP optimization only works for a linear tire model and without FCY phases (full course yellow 黄旗圈). This is due to the fact that it
+  basically optimizes the stint lengths（时段长度，一套轮胎的使用时长） to minimize solely the tire degradation time losses.
 """
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -44,7 +45,7 @@ with open(requirements_path, 'r') as fh_:
         line = fh_.readline()
 
 # check dependencies
-pkg_resources.require(dependencies)
+#pkg_resources.require(dependencies) # TODO:tensorflow需要的numpy与本程序冲突
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -285,7 +286,7 @@ if __name__ == '__main__':
     # set race parameter file name and if the parameter file is given in the simple format (i.e. specifically for the
     # basic race simulation) or not (i.e. it is a parameter file intended for the use with the normal race simulation)
     # -> in the latter case, the parameters will be converted automatically for the given driver initials
-    race_pars_file_ = "pars_YasMarina_2017.ini"
+    race_pars_file_ = "pars_YasMarina_2017.ini"  #比赛赛道与车辆配置文件
     simple_format_ = True
     driver_initials_ = ""  # only relevant if simple_format_ is False
 
@@ -308,13 +309,13 @@ if __name__ == '__main__':
                  "start_age": 0,
                  "enforce_diff_compounds": True,
                  "use_qp": False,
-                 "fcy_phases": None}
+                 "fcy_phases": None} # 仿真配置
 
     # use_plot:                 set if plotting should be used or not (will be shown up to max. 2 stops)
     # use_print:                set if prints to console should be used or not (does not suppress hints/warnings)
     # use_print_result:         set if result should be printed to console or not
 
-    use_plot = False
+    use_plot = True
     use_print = True
     use_print_result = True
 
@@ -322,7 +323,7 @@ if __name__ == '__main__':
     # INITIALIZATION ---------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    # load parameters
+    # load parameters 载入参数
     if simple_format_:
         pars_in_ = racesim_basic.src.import_pars.import_pars(use_print=use_print, race_pars_file=race_pars_file_)
     else:
@@ -330,7 +331,7 @@ if __name__ == '__main__':
                                                                          race_pars_file=race_pars_file_,
                                                                          driver_initials=driver_initials_)
 
-    # check parameters
+    # check parameters 检查参数
     racesim_basic.src.check_pars.check_pars(sim_opts=sim_opts_, pars_in=pars_in_, use_plot=use_plot)
 
     # ------------------------------------------------------------------------------------------------------------------

@@ -26,6 +26,12 @@ Attention:
   basically optimizes the stint lengths（时段长度，一套轮胎的使用时长） to minimize solely the tire degradation time losses.
 """
 
+"""
+Reference:
+Using aritifical neural networks for making race strategy decisions in circuit motorsport
+Chapter: 3.4.2
+"""
+
 # ----------------------------------------------------------------------------------------------------------------------
 # CHECK PYTHON DEPENDENCIES --------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------

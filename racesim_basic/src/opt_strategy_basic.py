@@ -118,7 +118,8 @@ def opt_strategy_basic(tot_no_laps: int,
         # no solution found
         stint_lengths = None
 
-    return stint_lengths
+    #return stint_lengths,no_stints,x,P,q # for debug
+    return no_stints
 
 
 # testing --------------------------------------------------------------------------------------------------------------

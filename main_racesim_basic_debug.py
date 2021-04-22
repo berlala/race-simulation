@@ -28,7 +28,7 @@ Attention:
 
 """
 Reference:
-Using aritifical neural networks for making race strategy decisions in circuit motorsport
+Paper: Using aritifical neural networks for making race strategy decisions in circuit motorsport
 Chapter: 3.4.2
 """
 
@@ -95,16 +95,19 @@ def main(sim_opts: dict, pars_in: dict) -> tuple:
                 tires = [[comp, 0] for comp in cur_comp_strat]
                 tires[0][1] = sim_opts["start_age"]
 
-                opt_stint_lengths,debug_st,debug_x,debug_P,debug_q = racesim_basic.src.opt_strategy_basic. \
-                    opt_strategy_basic(tot_no_laps=pars_in['race_pars']['tot_no_laps'],
+                opt_stint_lengths,debug_st,debug_x,debug_P,debug_q = racesim_basic.src.opt_strategy_basic_debug. \
+                    opt_strategy_basic_debug(tot_no_laps=pars_in['race_pars']['tot_no_laps'],
                                        tire_pars=pars_in['driver_pars']["tire_pars"],
                                        tires=tires)
                 print('====st and x====')
                 print(str(debug_st) +' and  '+ str(debug_x))
+                print('tires in this sim is:' +str(tires))
                 print('====P====')
                 print(debug_P)
                 print('====q====')
                 print(debug_q)
+                print('====opt_stint_length===')
+                print(opt_stint_lengths)
 
                 # if no solution was found exit QP and use full factorial instead
                 if opt_stint_lengths is None:
@@ -123,6 +126,8 @@ def main(sim_opts: dict, pars_in: dict) -> tuple:
                                      tires[i][0],  # set next compound
                                      tires[i][1],  # [-] tire age
                                      0.0])  # [kg or kWh] refueling during pit stop
+                    print('opt st len is '+ str(opt_stint_lengths[i]))
+                    print('tires is ' + str(tires[i][0]))
                     strategy_stints.extend([opt_stint_lengths[i], tires[i][0]])
                     laps_tmp += opt_stint_lengths[i]
 
@@ -328,7 +333,7 @@ if __name__ == '__main__':
     # use_print:                set if prints to console should be used or not (does not suppress hints/warnings)
     # use_print_result:         set if result should be printed to console or not
 
-    use_plot = True
+    use_plot = False
     use_print = True
     use_print_result = True
 
@@ -365,6 +370,8 @@ if __name__ == '__main__':
     # print resulting order and stint lengths (pit stop laps do not make sense as other orders are equally fast)
     if use_print_result:
         print('RESULT: Printing stint lengths instead of inlaps in the following because stint order is not relevant!')
+        strategy_times = []
+        strategy_entry = []
 
         for cur_no_pitstops_, strategies_cur_no_pitstops in t_race_fastest_.items():
             print('RESULT: Race times for %i stop strategies:' % cur_no_pitstops_)
@@ -372,11 +379,17 @@ if __name__ == '__main__':
             for strategy_ in strategies_cur_no_pitstops:
                 # set together print string
                 print_string = ''
+                strategy_entry.append(strategy_)
 
                 for entry in strategy_[0]:
-                    print_string += str(entry) + ' '
+                    print_string += str(entry) + ' '    # 显示策略
 
-                print(print_string + ': %.3fs' % strategy_[1])
+                print(print_string + ': %.3fs' % strategy_[1]) # 显示当前策略下的总时间
+                strategy_times.append(strategy_[1])
+        min_time_index = strategy_times.index(min(strategy_times))
+        #print('The min time for this race is '+ str(strategy_times[min_time_index]))
+        print('The strategy for the min time is '+ str(strategy_entry[min_time_index])) 
+        
 
     # ------------------------------------------------------------------------------------------------------------------
     # PLOTTING ---------------------------------------------------------------------------------------------------------

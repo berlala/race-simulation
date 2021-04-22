@@ -11,12 +11,12 @@ pars_in = racesim_basic.src.import_pars.import_pars(use_print=use_print, race_pa
 tot_no_laps=pars_in['race_pars']['tot_no_laps']
 tire_pars=pars_in['driver_pars']["tire_pars"]
 sim_opts = {"min_no_pitstops": 1,
-                "max_no_pitstops": 2,
-                "start_compound": None,
-                "start_age": 0,
-                "enforce_diff_compounds": True,
-                "use_qp": False,
-                "fcy_phases": None} # 仿真配置
+            "max_no_pitstops": 2,
+            "start_compound": None,
+            "start_age": 0,
+            "enforce_diff_compounds": True,
+            "use_qp": False,
+            "fcy_phases": None} # 仿真配置
 
 strategy_combinations = helper_funcs.src.get_strat_combinations. \
     get_strat_combinations(available_compounds=pars_in['available_compounds'],
@@ -25,7 +25,11 @@ strategy_combinations = helper_funcs.src.get_strat_combinations. \
                             enforce_diff_compounds=sim_opts["enforce_diff_compounds"],
                             start_compound=sim_opts["start_compound"],
                             all_orders=False)
-cur_comp_strat = strategy_combinations[2] # 数字是停站次数
+cur_comp_strat = strategy_combinations[1] # 【strategy_combinations】 是所有可能的停站可能策略,注意顺序是tuple不是index
+                                          # 【cur_comp_strat】 选取了其中一种停站策略
+print('startgey amount is '+str(len(strategy_combinations)))  
+print('all possible strategy are ' +str(strategy_combinations))                                  
+print('current possible candidate strategy is '+str(cur_comp_strat))
 tires = [[comp, 0] for comp in cur_comp_strat]
 tires[0][1] = sim_opts["start_age"]
 
@@ -37,8 +41,8 @@ tires[0][1] = sim_opts["start_age"]
 # the basic idea is to have one design variable per stint and using the equality constraint to assure that the total
 # number of laps of the race is considered (e.g. 2 stops means 3 design variables)
 # set together tire degradation coefficients
-print('x is '+str(tires))
-print('Tire Para ' + str(tire_pars))
+print('x(tires) is '+str(tires)) # 当前策略下的可能轮胎组合
+print('Tire Para ' + str(tire_pars)) # 所有轮胎参数
 x = tires
 #print('x select is '+str(x[0]))
 #print(tire_pars['A3']['k_1_lin'])
@@ -49,11 +53,11 @@ age_array = []
 for i in range(len(x)):
     #print(i)
     #print(tire_pars[x[0][0][0]])
-    k_1_lin_array.append([tire_pars[x[i][0][0]]['k_1_lin']])#注意取数的层级,中间的【0】是固定的
+    k_1_lin_array.append([tire_pars[x[i][0][0]]['k_1_lin']]) # 注意取数的层级,中间的【0】是固定的
     k_0_array.append([tire_pars[x[i][0][0]]['k_0']])
     age_array.append([x[i][1]]) # 初始寿命系数
 
-k_1_lin_array=np.array(k_1_lin_array)
+k_1_lin_array=np.array(k_1_lin_array) # 每个k_1, k_0，对应一个轮胎配置
 k_0_array=np.array(k_0_array)
 age_array=np.array(age_array)
 
@@ -62,7 +66,8 @@ print(k_1_lin_array)
 #print(age_array)
 
 # get number of stints
-no_stints = len(tires)
+no_stints = len(tires) # 
+print('all number of strategy is:' + str(no_stints)) # 有种策略？
 
 # set up problem matrices (P = H and q = f in quadprog)
 P = np.eye(no_stints) * 0.5 * k_1_lin_array * 2  # * 2 because of standard form

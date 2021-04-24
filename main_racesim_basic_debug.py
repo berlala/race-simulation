@@ -101,7 +101,7 @@ def main(sim_opts: dict, pars_in: dict) -> tuple:
                                        tires=tires)
                 print('====st and x====')
                 print(str(debug_st) +' and  '+ str(debug_x))
-                print('tires in this sim is:' +str(tires))
+                print('tires in this sim is:' +str(tires)) # 当前输入opt_strategy_basic的轮胎组合
                 print('====P====')
                 print(debug_P)
                 print('====q====')

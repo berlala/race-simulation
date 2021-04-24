@@ -120,14 +120,14 @@ def main(sim_opts: dict, pars_in: dict) -> tuple:
                 laps_tmp = 0
                 strategy = []  # [[inlap, compound, age, refueling], ...]
                 strategy_stints = []  # [stint_length, compound, stint_length, compound, ...]
-
+                print('===detial result===')
                 for i in range(cur_no_pitstops + 1):
                     strategy.append([laps_tmp,  # inlap
                                      tires[i][0],  # set next compound
                                      tires[i][1],  # [-] tire age
                                      0.0])  # [kg or kWh] refueling during pit stop
-                    print('opt st len is '+ str(opt_stint_lengths[i]))
-                    print('tires is ' + str(tires[i][0]))
+                    print('tire ' + str(tires[i][0]) + ' use ' + str(opt_stint_lengths[i])+' laps') 
+                                        # 当前所选用轮胎和所用圈速, 如A3 10圈,A4 20圈
                     strategy_stints.extend([opt_stint_lengths[i], tires[i][0]])
                     laps_tmp += opt_stint_lengths[i]
 

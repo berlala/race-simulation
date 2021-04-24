@@ -3,10 +3,18 @@ import cvxpy as cp
 import racesim_basic
 import helper_funcs.src.calc_tire_degradation
 
+#  opt_strategy_basic： 该函数的核心作用是根据指定的轮胎组合，如[A3,A3,A4]，输出使用该轮胎组合的最优换胎圈速
+#  输入： tot_no_laps： race 总圈数
+#        tire_pars： 轮胎词典
+#        tires： 当前策略的轮胎组合
+
 race_pars_file_ = "pars_YasMarina_2017.ini"  #比赛赛道与车辆配置文件
 use_print = True
 pars_in = racesim_basic.src.import_pars.import_pars(use_print=use_print, race_pars_file=race_pars_file_)
 
+# Important Input
+n_stop = 2 # 停站策略，选进pit几次，n_stop = 1 or 2，参考all_possible_strategy中的tuple index
+can_st = 2  # 选取的是哪个策略？（哪个轮胎组合） index 选取 0,1,2...。index总数不能超过current possible candidate strategy
 
 tot_no_laps=pars_in['race_pars']['tot_no_laps']
 tire_pars=pars_in['driver_pars']["tire_pars"]
@@ -25,14 +33,15 @@ strategy_combinations = helper_funcs.src.get_strat_combinations. \
                             enforce_diff_compounds=sim_opts["enforce_diff_compounds"],
                             start_compound=sim_opts["start_compound"],
                             all_orders=False)
-cur_comp_strat = strategy_combinations[1] # 【strategy_combinations】 是所有可能的停站可能策略,注意顺序是tuple不是index
+cur_comp_strat = strategy_combinations[n_stop] # 【strategy_combinations】 是所有可能的停站可能策略,注意顺序是tuple不是index
                                           # 【cur_comp_strat】 选取了其中一种停站策略
-print('startgey amount is '+str(len(strategy_combinations)))  
-print('all possible strategy are ' +str(strategy_combinations))                                  
+print('startgey amount is '+str(len(strategy_combinations))) 
+print('======== ========= ========')    
+print('all possible strategy are ' +str(strategy_combinations))   
+print('======== ========= ========')                               
 print('current possible candidate strategy is '+str(cur_comp_strat))
 tires = [[comp, 0] for comp in cur_comp_strat]
 tires[0][1] = sim_opts["start_age"]
-
 
 # ------------------------------------------------------------------------------------------------------------------
 # SET UP PROBLEM MATRICES ------------------------------------------------------------------------------------------
@@ -41,21 +50,23 @@ tires[0][1] = sim_opts["start_age"]
 # the basic idea is to have one design variable per stint and using the equality constraint to assure that the total
 # number of laps of the race is considered (e.g. 2 stops means 3 design variables)
 # set together tire degradation coefficients
-print('x(tires) is '+str(tires)) # 当前策略下的可能轮胎组合
+print('x_all(tires) is '+str(tires)) # 当前策略下的可能轮胎组合
+print('======== ========= ========')   
 print('Tire Para ' + str(tire_pars)) # 所有轮胎参数
-x = tires
-#print('x select is '+str(x[0]))
-#print(tire_pars['A3']['k_1_lin'])
+print('======== ========= ========')  
+c_tires = tires[can_st] # 当前所选策略
+print('Current Test Strategy is' + str(c_tires)) # 所有轮胎参数
+
 k_1_lin_array = []
 k_0_array = []
 age_array = []
 
-for i in range(len(x)):
+for i in range(len(c_tires[0])):
     #print(i)
     #print(tire_pars[x[0][0][0]])
-    k_1_lin_array.append([tire_pars[x[i][0][0]]['k_1_lin']]) # 注意取数的层级,中间的【0】是固定的
-    k_0_array.append([tire_pars[x[i][0][0]]['k_0']])
-    age_array.append([x[i][1]]) # 初始寿命系数
+    k_1_lin_array.append([tire_pars[c_tires[0][i]]['k_1_lin']]) # 注意取数的层级,中间的【0】是固定的
+    k_0_array.append([tire_pars[c_tires[0][i]]['k_0']])
+    age_array.append([c_tires[1]]) # 初始寿命系数
 
 k_1_lin_array=np.array(k_1_lin_array) # 每个k_1, k_0，对应一个轮胎配置
 k_0_array=np.array(k_0_array)
@@ -66,8 +77,8 @@ print(k_1_lin_array)
 #print(age_array)
 
 # get number of stints
-no_stints = len(tires) # 
-print('all number of strategy is:' + str(no_stints)) # 有种策略？
+no_stints = len(c_tires[0]) # 该策略下一共分几段session
+print('sessions are:' + str(no_stints)) # 几段session?
 
 # set up problem matrices (P = H and q = f in quadprog)
 P = np.eye(no_stints) * 0.5 * k_1_lin_array * 2  # * 2 because of standard form
@@ -91,7 +102,6 @@ x = cp.Variable(shape=(no_stints), integer=True)
 P = cp.Constant(P)
 
 print('===Dig for Opt Question===')
-print(x)
 print(no_stints)
 print('============H============')
 print(P)
@@ -116,7 +126,9 @@ else:
     # no solution found
     stint_lengths = None
 
+print('=== === === Final === Simulation === Result === === ===')
 print('Result is '+str(stint_lengths))
+print('The strategy is '+str(no_stints-1)+' Stop and tires are '+str(c_tires))
 
 # tire age not considered in these equations!
 # 1 stop 1 DV (no equality constraints -> more complicated, but less solving effort)
